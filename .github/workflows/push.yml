@@ -1,6 +1,6 @@
 name: On Push
 on:
-  push:
+  create:
     branches:
       - 'flux-release'
 
