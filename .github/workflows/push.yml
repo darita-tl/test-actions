@@ -9,4 +9,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          echo "Something is happening"
+          echo "Something is happening on ${{github.ref_name}}"
