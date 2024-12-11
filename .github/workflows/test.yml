@@ -8,3 +8,13 @@ jobs:
     steps:
       - name: Print Name
         run: echo "{{github.repository_owner}}"
+      - name: Generate JSON Output
+        id: generate-json
+        run: echo "::set-output name=jsonOutput::{\"text\":\"String with `backticks` and multiline\\ncontent\"}"
+      - name: Use JSON Output in GitHub Script
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = JSON.parse(`${{ steps.generate-json.outputs.jsonOutput }}`);
+            console.log('JSON Output:', output.text);
