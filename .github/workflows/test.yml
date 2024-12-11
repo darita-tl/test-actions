@@ -12,7 +12,7 @@ jobs:
         id: latest-release
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GITHUBACTIONSTOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           result-encoding: string
           script: |
             const isTag = context.ref.includes('tag');
