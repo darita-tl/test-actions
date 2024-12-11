@@ -34,6 +34,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: "${{ github.event.repository.name }} test pr",
+              head: "test",
               base: "main",
               body: response.data.body,
               draft: true
