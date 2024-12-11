@@ -8,13 +8,40 @@ jobs:
     steps:
       - name: Print Name
         run: echo "{{github.repository_owner}}"
-      - name: Generate JSON Output
-        id: generate-json
-        run: echo "::set-output name=jsonOutput::{\"text\":\"String with `backticks` and multiline\\ncontent\"}"
-      - name: Use JSON Output in GitHub Script
+      - name: Get Latest Release
+        id: latest-release
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUBACTIONSTOKEN }}
+          result-encoding: string
           script: |
-            const output = JSON.parse(`${{ steps.generate-json.outputs.jsonOutput }}`);
-            console.log('JSON Output:', output.text);
+            const isTag = context.ref.includes('tag');
+            let response = {};
+            if (isTag) {
+              const tag = context.ref.replace('refs/tags/', '');
+              response = await github.rest.repos.getReleaseByTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag
+              })
+            } else {
+              response = await github.rest.repos.getLatestRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo
+              })
+            }
+            const { data: pullRequest } = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: "${{ github.event.repository.name }} test pr",
+              base: "main",
+              body: response.data.body,
+              draft: true
+            });
+
+            console.log(`Created PR #${pullRequest.number}: ${pullRequest.html_url}`);
+
+            // Set outputs
+            core.setOutput("pull-request-number", pullRequest.number);
+            core.setOutput("pull-request-url", pullRequest.html_url);
+            return JSON.stringify(response.data);
