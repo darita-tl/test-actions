@@ -1,8 +1,9 @@
-name: On Release Created
+name: On Tag Creation
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - "v*" # Adjust this pattern if your releases use a different format
 
 jobs:
   release:
@@ -11,6 +12,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Run a script
+      - name: Get the Tag Name
         run: |
-          echo "A new release was created: ${{ github.event.release.tag_name }}"
+          echo "New tag pushed: ${{ github.ref_name }}"
