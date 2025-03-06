@@ -3,7 +3,7 @@ name: On Tag Creation
 on:
   push:
     tags:
-      - "v*" # Adjust this pattern if your releases use a different format
+      - v*
 
 jobs:
   release:
