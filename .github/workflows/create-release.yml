@@ -8,7 +8,7 @@ on:
 jobs:
   print-data:
     runs-on: ubuntu-latest
-    name: Print data if admin
+    name: Create a Release based on input
     steps:
       - name: Create new Release
         id: new-release
