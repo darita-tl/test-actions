@@ -15,7 +15,12 @@ jobs:
       - name: Get Latest Tag
         id: get_tag
         run: |
-          latest_tag=$(git describe --tags --abbrev=0)
+          # Fetch all tags explicitly (in case they are not fetched by default)
+          git fetch --tags
+          
+          # Get the latest tag or set to 'No tags found' if none exist
+          latest_tag=$(git describe --tags --abbrev=0 || echo "No tags found")
+          
           echo "Latest tag: $latest_tag"
           echo "latest_tag=$latest_tag" >> $GITHUB_ENV
 
