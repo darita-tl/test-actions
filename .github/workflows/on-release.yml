@@ -1,0 +1,16 @@
+name: On Release Created
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run a script
+        run: |
+          echo "A new release was created: ${{ github.event.release.tag_name }}"

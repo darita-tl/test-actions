@@ -1,0 +1,27 @@
+name: Create GH Release
+on: 
+  workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        required: true
+jobs:
+  print-data:
+    runs-on: ubuntu-latest
+    name: Print data if admin
+    steps:
+      - name: Create new Release
+        id: new-release
+        uses: actions/github-script@v6
+        with:
+          result-encoding: string
+          script: |
+            const { readFileSync } = require("fs");
+            const release = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: 'v${{inputs.version}}',
+              target_commitish: context.sha,
+              generate_release_notes: true
+            });
+            console.log(release.data)
