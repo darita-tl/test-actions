@@ -2,8 +2,8 @@ name: On Tag Creation
 
 on:
   push:
-    tags:
-      - v*
+    paths:
+      - "CHANGELOG.md"
 
 jobs:
   release:
@@ -12,6 +12,14 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Get the Tag Name
+      - name: Get Latest Tag
+        id: get_tag
         run: |
-          echo "New tag pushed: ${{ github.ref_name }}"
+          latest_tag=$(git describe --tags --abbrev=0)
+          echo "Latest tag: $latest_tag"
+          echo "latest_tag=$latest_tag" >> $GITHUB_ENV
+
+      - name: Print Changelog Change and Latest Tag
+        run: |
+          echo "CHANGELOG.md was updated!"
+          echo "The latest tag is: ${{ env.latest_tag }}"

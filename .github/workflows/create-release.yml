@@ -10,6 +10,21 @@ jobs:
     runs-on: ubuntu-latest
     name: Create a Release based on input
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Modify Changelog
+        run: echo "$(date) - Test changelog update" >> CHANGELOG.md
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add CHANGELOG.md
+          git commit -m "Test: Update Changelog"
+          git push
       - name: Create new Release
         id: new-release
         uses: actions/github-script@v6
