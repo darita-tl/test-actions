@@ -1,12 +1,22 @@
 name: On Push
 on:
-  create:
+  push:
     branches:
       - 'flux-release'
+  workflow_dispatch:
+    inputs:
+      package_dir:
+        description: 'Directory of the package'
+        required: true
+        type: string
 
 jobs:
   validate_push:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{inputs.package_dir}}
     steps:
       - run: |
+          ls
           echo "Something is happening on ${{github.ref_name}}"
