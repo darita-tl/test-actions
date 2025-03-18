@@ -2,13 +2,7 @@ name: On Push
 on:
   push:
     branches:
-      - 'flux-release'
-  workflow_dispatch:
-    inputs:
-      package_dir:
-        description: 'Directory of the package'
-        required: true
-        type: string
+      - 'main'
 
 jobs:
   validate_push:
