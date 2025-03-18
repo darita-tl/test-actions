@@ -2,7 +2,7 @@ name: On Push
 on:
   push:
     branches:
-      - 'main'
+      - main
 
 jobs:
   validate_push:
