@@ -6,10 +6,12 @@ on:
 
 jobs:
   validate_push:
-    if: github.actor != 'github-actions'
+    # if: github.actor != 'github-actions'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: |
+      - name: Simple Message
+        # if: github.actor != 'github-actions'
+        run: |
           ls
-          echo "Something is happening on ${{github.ref_name}}"
+          echo "Something is happening on ${{github.ref_name}} by ${{github.actor}}"
