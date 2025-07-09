@@ -45,20 +45,30 @@ jobs:
           script: |
             const allTasks = ['stories', 'homepages', 'contracts'];
             const eventName = process.env.GITHUB_EVENT_NAME;
-            let selected = [];
+            let selectedTasks = [];
             
             if (eventName === 'push') {
               // On push to main: include everything
-              selected = allTasks;
+              selectedTasks = allTasks;
             } else {
               // On workflow_dispatch: include only checked inputs
               console.log('Inputs:', github.event);
-              if ('${{github.event.inputs.release-stories}}' === 'true') selected.push('stories');
-              if ('${{github.event.inputs.release-homepages}}' === 'true') selected.push('homepages');
-              if ('${{github.event.inputs.release-contracts}}' === 'true') selected.push('contracts');
+              if ('${{github.event.inputs.release-stories}}' === 'true') selectedTasks.push('stories');
+              if ('${{github.event.inputs.release-homepages}}' === 'true') selectedTasks.push('homepages');
+              if ('${{github.event.inputs.release-contracts}}' === 'true') selectedTasks.push('contracts');
             }
             
-            core.setOutput('matrix', JSON.stringify({ task: selected }));
+            const matrixInclude = selectedTasks.map(task => {
+              let app_type;
+              if (task === 'stories' || task === 'homepages') {
+                app_type = 'api';
+              } else if (task === 'contracts') {
+                app_type = 'npm_package';
+              }
+              return { task: task, app_type: app_type };
+            });
+            
+            core.setOutput('matrix', JSON.stringify({ include: matrixInclude }));
 
   run-on-matrix:
     needs: prepare-matrix
@@ -66,12 +76,12 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.prepare-matrix.outputs.matrix) }}
     steps:
-      - name: Execute ${{ matrix.task }}
+      - name: Execute ${{ matrix.task }} (${{ matrix.app_type }})
         if: ${{ matrix.task }}
         run: |
-          echo "▶️ Running ${{ matrix.task }}"
+          echo "▶️ Running ${{ matrix.task }} (${{ matrix.app_type }})"
           case "${{ matrix.task }}" in
-            stories)  echo "→ Releasing stories with ${{github.event.inputs.increase}} version";;
-            homepages)   echo "→ Releasing homepages with ${{github.event.inputs.increase}} version";;
-            contracts)  echo "→ Releasing contracts with ${{github.event.inputs.increase}} version";;
+            stories)  echo "→ Releasing stories (${{ matrix.app_type }}) with ${{github.event.inputs.increase}} version";;
+            homepages)   echo "→ Releasing homepages (${{ matrix.app_type }}) with ${{github.event.inputs.increase}} version";;
+            contracts)  echo "→ Releasing contracts (${{ matrix.app_type }}) with ${{github.event.inputs.increase}} version";;
           esac
