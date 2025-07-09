@@ -4,17 +4,17 @@ on:
   workflow_dispatch:
     inputs:
       release-stories:
-        description: "Run stories?"
+        description: "Release stories?"
         required: false
         type: boolean
         default: false
       release-homepages:
-        description: "Run homepages?"
+        description: "Release homepages?"
         required: false
         type: boolean
         default: false
       release-contracts:
-        description: "Run contracts?"
+        description: "Release contracts?"
         required: false
         type: boolean
         default: false
