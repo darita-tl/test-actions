@@ -1,0 +1,77 @@
+name: Conditional Matrix Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      release-stories:
+        description: "Run stories?"
+        required: false
+        type: boolean
+        default: false
+      release-homepages:
+        description: "Run homepages?"
+        required: false
+        type: boolean
+        default: false
+      release-contracts:
+        description: "Run contracts?"
+        required: false
+        type: boolean
+        default: false
+      increase:
+        description: "Release version"
+        required: true
+        type: choice
+        options:
+          - skip
+          - patch
+          - minor
+          - major
+        default: skip
+  push:
+    branches:
+      - main
+
+jobs:
+  prepare-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Build matrix JSON
+        id: set-matrix
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const allTasks = ['stories', 'homepages', 'contracts'];
+            const eventName = process.env.GITHUB_EVENT_NAME;
+            let selected = [];
+            
+            if (eventName === 'push') {
+              // On push to main: include everything
+              selected = allTasks;
+            } else {
+              // On workflow_dispatch: include only checked inputs
+              console.log('Inputs:', github.event);
+              if ('${{github.event.inputs.release-stories}}' === 'true') selected.push('stories');
+              if ('${{github.event.inputs.release-homepages}}' === 'true') selected.push('homepages');
+              if ('${{github.event.inputs.release-contracts}}' === 'true') selected.push('contracts');
+            }
+            
+            core.setOutput('matrix', JSON.stringify({ task: selected }));
+
+  run-on-matrix:
+    needs: prepare-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.prepare-matrix.outputs.matrix) }}
+    steps:
+      - name: Execute ${{ matrix.task }}
+        if: ${{ matrix.task }}
+        run: |
+          echo "▶️ Running ${{ matrix.task }}"
+          case "${{ matrix.task }}" in
+            stories)  echo "→ Releasing stories with ${{github.event.inputs.increase}} version";;
+            homepages)   echo "→ Releasing homepages with ${{github.event.inputs.increase}} version";;
+            contracts)  echo "→ Releasing contracts with ${{github.event.inputs.increase}} version";;
+          esac
