@@ -57,10 +57,8 @@ jobs:
               selectedTasks = Object.values(allTasks);
             } else {
               // On workflow_dispatch: include only checked inputs
-              const inputs = github.context.inputs;
-              console.log('Inputs:', github.context);
-              if (inputs['release-stories']) selectedTasks.push(allTasks.stories);
-              if (inputs['release-contracts']) selectedTasks.push(allTasks.contracts);
+              if ('${{github.event.inputs.release-stories}}' === 'true') selectedTasks.push(allTasks.stories);
+              if ('${{github.event.inputs.release-contracts}}' === 'true') selectedTasks.push(allTasks.contracts);
             }
             
             const appMatrix = selectedTasks.filter(task => task.type === 'api' );
