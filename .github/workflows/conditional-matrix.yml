@@ -8,11 +8,6 @@ on:
         required: false
         type: boolean
         default: false
-      release-homepages:
-        description: "Release homepages?"
-        required: false
-        type: boolean
-        default: false
       release-contracts:
         description: "Release contracts?"
         required: false
@@ -36,52 +31,69 @@ jobs:
   prepare-matrix:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      appMatrix: ${{ steps.set-matrix.outputs.appMatrix }}
+      packageMatrix: ${{ steps.set-matrix.outputs.packageMatrix }}
     steps:
       - name: Build matrix JSON
         id: set-matrix
         uses: actions/github-script@v6
         with:
           script: |
-            const allTasks = ['stories', 'homepages', 'contracts'];
+            const allTasks = {
+              stories: {
+                name: "cms-stories-api",
+                type: "api"
+              },
+              contracts: {
+                name: "cms-api-contracts",
+                type: "npm_package"
+              },
+            };
             const eventName = process.env.GITHUB_EVENT_NAME;
             let selectedTasks = [];
             
             if (eventName === 'push') {
               // On push to main: include everything
-              selectedTasks = allTasks;
+              selectedTasks = Object.values(allTasks);
             } else {
               // On workflow_dispatch: include only checked inputs
-              console.log('Inputs:', github.event);
-              if ('${{github.event.inputs.release-stories}}' === 'true') selectedTasks.push('stories');
-              if ('${{github.event.inputs.release-homepages}}' === 'true') selectedTasks.push('homepages');
-              if ('${{github.event.inputs.release-contracts}}' === 'true') selectedTasks.push('contracts');
+              const inputs = github.context.inputs;
+              console.log('Inputs:', github.context);
+              if (inputs['release-stories']) selectedTasks.push(allTasks.stories);
+              if (inputs['release-contracts']) selectedTasks.push(allTasks.contracts);
             }
             
-            const matrixInclude = selectedTasks.map(task => {
-              let app_type;
-              if (task === 'stories' || task === 'homepages') {
-                app_type = 'api';
-              } else if (task === 'contracts') {
-                app_type = 'npm_package';
-              }
-              return { task: task, app_type: app_type };
-            });
-            
-            core.setOutput('matrix', JSON.stringify({ include: matrixInclude }));
+            const appMatrix = selectedTasks.filter(task => task.type === 'api' );
+            const packageMatrix = selectedTasks.filter(task => task.type === 'npm_package' );
+            core.setOutput('appMatrix', JSON.stringify({ include: appMatrix }));
+            core.setOutput('packageMatrix', JSON.stringify({ include: packageMatrix }));
 
-  run-on-matrix:
+  app-matrix:
     needs: prepare-matrix
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{ fromJson(needs.prepare-matrix.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.prepare-matrix.outputs.appMatrix) }}
     steps:
-      - name: Execute ${{ matrix.task }} (${{ matrix.app_type }})
-        if: ${{ matrix.task }}
+      - name: Execute ${{ matrix.name }} (${{ matrix.type }})
+        if: ${{ matrix.name }}
         run: |
-          echo "▶️ Running ${{ matrix.task }} (${{ matrix.app_type }})"
-          case "${{ matrix.task }}" in
-            stories)  echo "→ Releasing stories (${{ matrix.app_type }}) with ${{github.event.inputs.increase}} version";;
-            homepages)   echo "→ Releasing homepages (${{ matrix.app_type }}) with ${{github.event.inputs.increase}} version";;
-            contracts)  echo "→ Releasing contracts (${{ matrix.app_type }}) with ${{github.event.inputs.increase}} version";;
+          echo "▶️ Running ${{ matrix.name }} (${{ matrix.type }})"
+          case "${{ matrix.name }}" in
+            cms-stories-api)  echo "→ Releasing stories (${{ matrix.type }}) with ${{github.event.inputs.increase}} version";;
+            cms-api-contracts)  echo "→ Releasing contracts (${{ matrix.type }}) with ${{github.event.inputs.increase}} version";;
+          esac
+  
+  package-matrix:
+    needs: prepare-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.prepare-matrix.outputs.packageMatrix) }}
+    steps:
+      - name: Execute ${{ matrix.name }} (${{ matrix.type }})
+        if: ${{ matrix.name }}
+        run: |
+          echo "▶️ Running ${{ matrix.name }} (${{ matrix.type }})"
+          case "${{ matrix.name }}" in
+            cms-stories-api)  echo "→ Releasing stories (${{ matrix.type }}) with ${{github.event.inputs.increase}} version";;
+            cms-api-contracts)  echo "→ Releasing contracts (${{ matrix.type }}) with ${{github.event.inputs.increase}} version";;
           esac
