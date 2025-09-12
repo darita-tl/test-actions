@@ -12,6 +12,29 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install ripgrep
         run: sudo apt-get update && sudo apt-get install -y ripgrep
+      - name: Get Changelog changes
+        run: |
+          NEW_VERSION=0.12.0
+          OLD_VERSION=0.11.0
+          FILE=apps/${{inputs.app}}/CHANGELOG.md
+          echo "Getting changes from $OLD_VERSION to $NEW_VERSION"
+          CHANGELOG=$(awk -v v="$VERSION" -v o="$OLD_VERSION" '
+          function is_header() { return $0 ~ /^##+ \[/ }
+          function has_ver(ver) { return index($0, "[" ver "]") > 0 }
+          {
+            if (is_header()) {
+              if (!printing && has_ver(v)) { printing=1; next }
+              if (printing) {
+                if (o != "" && has_ver(o)) exit
+                if (o == "" && !has_ver(v)) exit
+                if (o != "" && !has_ver(v) && !has_ver(o)) exit
+              }
+            }
+            if (printing) print
+          }
+          ' "$FILE")
+          echo "generated CHANGELOG for $NEW_VERSION"
+          echo $CHANGELOG
       - name: Simple Message
         # if: github.actor != 'github-actions'
         run: |
