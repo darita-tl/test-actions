@@ -16,6 +16,7 @@ jobs:
           OLD_VERSION=0.11.0
           FILE=CHANGELOG.md
           echo "Getting changes from $OLD_VERSION to $NEW_VERSION"
+          cat $FILE
           CHANGELOG=$(awk -v v="$VERSION" -v o="$OLD_VERSION" '
           function is_header() { return $0 ~ /^##+ \[/ }
           function has_ver(ver) { return index($0, "[" ver "]") > 0 }
