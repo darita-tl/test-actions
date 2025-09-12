@@ -10,13 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install ripgrep
-        run: sudo apt-get update && sudo apt-get install -y ripgrep
       - name: Get Changelog changes
         run: |
           NEW_VERSION=0.12.0
           OLD_VERSION=0.11.0
-          FILE=apps/${{inputs.app}}/CHANGELOG.md
+          FILE=CHANGELOG.md
           echo "Getting changes from $OLD_VERSION to $NEW_VERSION"
           CHANGELOG=$(awk -v v="$VERSION" -v o="$OLD_VERSION" '
           function is_header() { return $0 ~ /^##+ \[/ }
