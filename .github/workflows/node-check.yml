@@ -1,4 +1,4 @@
-name: On Tag Creation
+name: Check node version
 
 on:
   workflow_dispatch: 
