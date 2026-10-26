@@ -1,0 +1,16 @@
+name: On Tag Creation
+
+on:
+  workflow_dispatch: 
+  schedule:
+    - cron: '*/5 * * * *'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Node Version
+        run: |
+          node -v
